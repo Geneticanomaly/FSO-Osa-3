@@ -1,9 +1,11 @@
 const express = require('express');
 const app = express();
 
+app.use(express.json());
+
 const PORT = 3001;
 
-let notes = [
+let persons = [
     {
         id: '1',
         name: 'Arto Hellas',
@@ -33,19 +35,19 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/persons', (req, res) => {
-    res.json(notes);
+    res.json(persons);
 });
 
 app.get('/info', (req, res) => {
-    res.send(`<p>Phonebook has info for ${notes.length} people</p>
+    res.send(`<p>Phonebook has info for ${persons.length} people</p>
         <p>${time}</p>`);
 });
 
 app.get('/api/persons/:id', (req, res) => {
     const id = req.params.id;
-    const note = notes.find((note) => note.id === id);
-    if (note) {
-        res.json(note);
+    const person = persons.find((person) => person.id === id);
+    if (person) {
+        res.json(person);
     } else {
         return res.status(404).end();
     }
@@ -53,9 +55,28 @@ app.get('/api/persons/:id', (req, res) => {
 
 app.delete('/api/persons/:id', (req, res) => {
     const id = req.params.id;
-    notes = notes.filter((note) => note.id !== id);
+    persons = persons.filter((person) => person.id !== id);
 
     res.status(204).end();
+});
+
+app.post('/api/persons', (req, res) => {
+    const body = req.body;
+
+    if (!body.name) {
+        return res.status(400).json({
+            error: 'name missing',
+        });
+    }
+
+    const person = {
+        id: Math.random(1, 10000).toString(),
+        name: body.name,
+        number: body.number,
+    };
+    persons = persons.concat(person);
+
+    res.json(person);
 });
 
 app.listen(PORT, () => {
