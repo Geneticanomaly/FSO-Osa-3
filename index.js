@@ -19,9 +19,11 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/persons', (req, res) => {
-    Person.find({}).then((people) => {
-        res.json(people);
-    });
+    Person.find({})
+        .then((people) => {
+            res.json(people);
+        })
+        .catch((error) => next(error));
 });
 
 app.get('/info', (req, res, next) => {
@@ -29,7 +31,6 @@ app.get('/info', (req, res, next) => {
     Person.find({})
         .then((people) => {
             people.forEach((person) => {
-                console.log(people);
                 existingPeople.push(person);
             });
             res.send(`<p>Phonebook has info for ${existingPeople.length} people</p>
