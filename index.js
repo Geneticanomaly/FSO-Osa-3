@@ -64,22 +64,13 @@ app.post('/api/persons', (req, res) => {
         });
     }
 
-    const existingPerson = persons.find((person) => person.name === body.name);
-
-    if (existingPerson) {
-        return res.status(400).json({
-            error: 'name must be unique',
-        });
-    }
-
-    const person = {
-        id: Math.random(1, 10000).toString(),
+    const person = new Person({
         name: body.name,
         number: body.number,
-    };
-    persons = persons.concat(person);
-
-    res.json(person);
+    });
+    person.save().then((savedPerson) => {
+        res.json(savedPerson);
+    });
 });
 
 const PORT = process.env.PORT || 3001;
