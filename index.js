@@ -1,7 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
 const cors = require('cors');
+const Person = require('./models/person');
 
 app.use(express.json());
 app.use(cors());
@@ -10,29 +12,6 @@ app.use(express.static('dist'));
 morgan.token('body', (req, res) => JSON.stringify(req.body));
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
 
-let persons = [
-    {
-        id: '1',
-        name: 'Arto Hellas',
-        number: '040-123456',
-    },
-    {
-        id: '2',
-        name: 'Ada Lovelace',
-        number: '39-44-5323523',
-    },
-    {
-        id: '3',
-        name: 'Dan Abramov',
-        number: '12-43-234345',
-    },
-    {
-        id: '4',
-        name: 'Mary Poppendieck',
-        number: '39-23-6423122',
-    },
-];
-
 const time = new Date();
 
 app.get('/', (req, res) => {
@@ -40,22 +19,33 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/persons', (req, res) => {
-    res.json(persons);
+    Person.find({}).then((people) => {
+        res.json(people);
+    });
 });
 
 app.get('/info', (req, res) => {
-    res.send(`<p>Phonebook has info for ${persons.length} people</p>
-        <p>${time}</p>`);
+    const existingPeople = [];
+    Person.find({}).then((people) => {
+        people.forEach((person) => {
+            console.log(people);
+            existingPeople.push(person);
+        });
+        res.send(`<p>Phonebook has info for ${existingPeople.length} people</p>
+            <p>${time}</p>`);
+    });
 });
 
 app.get('/api/persons/:id', (req, res) => {
     const id = req.params.id;
-    const person = persons.find((person) => person.id === id);
-    if (person) {
-        res.json(person);
-    } else {
-        return res.status(404).end();
-    }
+    Person.findById(id)
+        .then((person) => {
+            res.json(person);
+        })
+        .catch((error) => {
+            console.error(error);
+            return res.status(404).end();
+        });
 });
 
 app.delete('/api/persons/:id', (req, res) => {
