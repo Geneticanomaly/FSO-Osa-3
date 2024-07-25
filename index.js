@@ -26,14 +26,19 @@ app.get('/api/persons', (req, res) => {
 
 app.get('/info', (req, res) => {
     const existingPeople = [];
-    Person.find({}).then((people) => {
-        people.forEach((person) => {
-            console.log(people);
-            existingPeople.push(person);
-        });
-        res.send(`<p>Phonebook has info for ${existingPeople.length} people</p>
+    Person.find({})
+        .then((people) => {
+            people.forEach((person) => {
+                console.log(people);
+                existingPeople.push(person);
+            });
+            res.send(`<p>Phonebook has info for ${existingPeople.length} people</p>
             <p>${time}</p>`);
-    });
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).send({error: 'something went wrong'});
+        });
 });
 
 app.get('/api/persons/:id', (req, res) => {
@@ -44,15 +49,20 @@ app.get('/api/persons/:id', (req, res) => {
         })
         .catch((error) => {
             console.error(error);
-            return res.status(404).end();
+            return res.status(500).send({error: 'malformatted id'});
         });
 });
 
 app.delete('/api/persons/:id', (req, res) => {
     const id = req.params.id;
-    persons = persons.filter((person) => person.id !== id);
-
-    res.status(204).end();
+    Person.findByIdAndDelete(id)
+        .then((result) => {
+            res.status(204).end();
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).send({error: 'malformatted id'});
+        });
 });
 
 app.post('/api/persons', (req, res) => {
@@ -68,9 +78,15 @@ app.post('/api/persons', (req, res) => {
         name: body.name,
         number: body.number,
     });
-    person.save().then((savedPerson) => {
-        res.json(savedPerson);
-    });
+    person
+        .save()
+        .then((savedPerson) => {
+            res.json(savedPerson);
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).send({error: 'something went wrong'});
+        });
 });
 
 const PORT = process.env.PORT || 3001;
